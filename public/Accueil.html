@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion</title>
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial;
+        }
+        .container { text-align: center; }
+        input { width: 200px; padding: 8px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 8px 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Connexion à un enseignant</h2>
+
+        <label>Usager :</label><br>
+        <input type="text" id="usager" name="usager" required><br><br>
+
+        <label>Mot de passe :</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <button type="submit" id="submit" name="submit">Se connecter</button><br><br>
+
+        <label style="color:red;" id="erreur"> </label>
+    </div>
+
+    <script>
+        const usager = document.getElementById("usager");
+        const mdp = document.getElementById("password");
+        const btnSeConnecter = document.getElementById("submit");
+        const erreur = document.getElementById("erreur");
+
+        // Vérifier l'usager et le mot de passe auprès du serveur (base SQLite)
+        btnSeConnecter.addEventListener("click", async () => {
+            const reponse = await fetch("/api/connexion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usager: usager.value, password: mdp.value })
+            });
+
+            const data = await reponse.json();
+
+            if (data.ok) {
+                erreur.textContent = "";
+                // window.location.href = "COLLE LA PAGE ICI";
+            } else {
+                erreur.textContent = data.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
