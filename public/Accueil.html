@@ -51,11 +51,14 @@
             const data = await reponse.json();
 
             if (data.ok) {
-                erreur.textContent = "";
-                  window.location.href = "dashboard.html";
-            } else {
-                erreur.textContent = data.message;
-            }
+    erreur.textContent = "";
+
+    localStorage.setItem("token", data.token);
+
+    window.location.href = "/Dashboard.html";
+} else {
+    erreur.textContent = data.message;
+}
         });
     </script>
 
