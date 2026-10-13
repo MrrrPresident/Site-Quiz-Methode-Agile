@@ -391,20 +391,40 @@ body {
   <div class="search-icon" aria-hidden="true"></div>
 
   <a
-    class="logout"
-    href="index.html"
-    onclick="deconnecter(event)"
-  >
-    Déconnexion
-  </a>
-
-</div>
+  class="logout"
+  href="Accueil.html"
+  onclick="deconnecter(event)"
+>
+  Déconnexion
+</a>
 
 <script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location.href = "Accueil.html";
+} else {
+  fetch("/api/verifier-token", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+  .then(reponse => reponse.json())
+  .then(data => {
+    if (!data.ok) {
+      localStorage.removeItem("token");
+      window.location.href = "Accueil.html";
+    }
+  })
+  .catch(() => {
+    localStorage.removeItem("token");
+    window.location.href = "Accueil.html";
+  });
+}
+
 function deconnecter(event) {
   event.preventDefault();
 
-  sessionStorage.clear();
   localStorage.removeItem("token");
 
   window.location.href = "Accueil.html";
