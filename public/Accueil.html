@@ -9,6 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            
             height: 100vh;
             margin: 0;
             font-family: Arial;
@@ -21,14 +22,15 @@
 <body>
 
     <div class="container">
-        <h2>Connexion à un enseignant</h2>
+        <button id=btnEleve style="background-color: gray;">Élève</button><button id="btnEnseigant" style="background-color: white;">Enseigant</button>
+        <h2 id="typeDeConnexion" >Connexion à un élève</h2>
 
         <label>Usager :</label><br>
         <input type="text" id="usager" name="usager" required><br><br>
 
         <label>Mot de passe :</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-
+        <input type="password" id="password" name="password" required>
+        <span id="toggleMdp" style="cursor:pointer; margin-left:10px; font-size:20px;">👁️</span><br><br>
         <button type="submit" id="submit" name="submit">Se connecter</button><br><br>
 
         <label style="color:red;" id="erreur"> </label>
@@ -39,7 +41,30 @@
         const mdp = document.getElementById("password");
         const btnSeConnecter = document.getElementById("submit");
         const erreur = document.getElementById("erreur");
-
+        const toggleMdp=document.getElementById("toggleMdp");
+        const btnEleve=document.getElementById("btnEleve");
+        const btnEnseignant=document.getElementById("btnEnseigant");
+        const typeDeConnexion=document.getElementById("typeDeConnexion");
+        //Changer le type de connexion (Élève/Enseigant)
+        btnEleve.addEventListener("click",e=>{
+        typeDeConnexion.textContent="Connexion à un élève"
+        btnEleve.style.backgroundColor="gray";
+        btnEnseignant.style.backgroundColor="white";
+        })
+        btnEnseignant.addEventListener("click",e=>{
+        typeDeConnexion.textContent="Connexion à un enseignant"
+        btnEnseignant.style.backgroundColor="gray"
+        btnEleve.style.backgroundColor="white";
+        })
+        //Afficher/Cacher le mot de passe
+        toggleMdp.addEventListener("click",  e=>{
+            if(mdp.type=="password"){
+                mdp.type="text"
+            }
+            else{
+                mdp.type="password"
+            }
+        })
         // Vérifier l'usager et le mot de passe auprès du serveur (base SQLite)
         btnSeConnecter.addEventListener("click", async () => {
             const reponse = await fetch("/api/connexion", {
