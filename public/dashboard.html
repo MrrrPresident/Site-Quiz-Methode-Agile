@@ -1,435 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — Create New Question</title>
-
-<style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: white;
-  color: #000;
-}
-
-.page {
-  width: 1440px;
-  min-height: 1024px;
-  position: relative;
-  background: white;
-  overflow: hidden;
-}
-
-.sidebar {
-  width: 203px;
-  height: 993px;
-  left: 19px;
-  top: 14px;
-  position: absolute;
-  background: linear-gradient(180deg, #067AFF 40%, #2912BB 94%);
-  border-radius: 15px;
-}
-
-.topbar {
-  width: 1194px;
-  height: 89px;
-  left: 232px;
-  top: 14px;
-  position: absolute;
-  background: #067AFF;
-  border-radius: 15px;
-}
-
-.panel {
-  width: 1194px;
-  height: 421px;
-  left: 232px;
-  top: 229px;
-  position: absolute;
-  background: rgba(217, 217, 217, .25);
-  border-radius: 15px;
-  border: 1px solid rgba(217, 217, 217, .75);
-}
-
-.heading {
-  padding: 10px;
-  left: 249px;
-  top: 115px;
-  position: absolute;
-}
-
-.heading strong {
-  display: block;
-  font: 700 32px "IBM Plex Mono", monospace;
-}
-
-.heading span {
-  font: 500 20px "IBM Plex Mono", monospace;
-}
-
-.section-title {
-  width: 292px;
-  height: 31px;
-  left: 259px;
-  top: 243px;
-  position: absolute;
-  font: 500 24px "IBM Plex Mono", monospace;
-}
-
-.label {
-  width: 160px;
-  height: 32px;
-  left: 259px;
-  position: absolute;
-  font: 400 20px "IBM Plex Mono", monospace;
-}
-
-.title-label {
-  top: 282px;
-}
-
-.description-label {
-  top: 419px;
-}
-
-.field {
-  position: absolute;
-  left: 259px;
-  width: 1133px;
-  background: white;
-  border: 1px solid rgba(217, 217, 217, .75);
-  border-radius: 15px;
-  padding: 17px 16px;
-  font: 400 20px Inter, Arial, sans-serif;
-  color: #444;
-}
-
-.title-field {
-  top: 322px;
-  height: 62px;
-}
-
-.description-field {
-  top: 463px;
-  height: 158px;
-}
-
-.logo-grid {
-  width: 39px;
-  height: 40px;
-  left: 30px;
-  top: 31px;
-  position: absolute;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 9px;
-  border: 1px solid white;
-  padding: 1px;
-}
-
-.logo-grid div:nth-child(1),
-.logo-grid div:nth-child(4) {
-  background: white;
-}
-
-.logo-grid div:nth-child(2),
-.logo-grid div:nth-child(3) {
-  background: #06FFFB;
-}
-
-.dashboard-label {
-  left: 76px;
-  top: 39px;
-  position: absolute;
-  color: white;
-  font: 500 24px "IBM Plex Mono", monospace;
-}
-
-.quiz-panel {
-  width: 1194px;
-  height: 328px;
-  left: 232px;
-  top: 679px;
-  position: absolute;
-  background: rgba(217, 217, 217, .25);
-  border-radius: 15px;
-}
-
-.quiz-inner {
-  width: 1112px;
-  height: 264px;
-  left: 280px;
-  top: 706px;
-  position: absolute;
-  overflow: auto;
-}
-
-.quiz-title {
-  position: absolute;
-  left: 24px;
-  top: 9px;
-  font: 500 24px "IBM Plex Mono", monospace;
-}
-
-.question-input {
-  width: 781px;
-  height: 69px;
-  left: 24px;
-  top: 75px;
-  position: absolute;
-  background: white;
-  border: 1px solid rgba(217, 217, 217, .75);
-  border-radius: 15px;
-  padding: 17px 16px;
-  font-size: 20px;
-}
-
-.add-question {
-  position: absolute;
-  left: 569px;
-  top: 176px;
-  width: 236px;
-  height: 50px;
-  border: 0;
-  background: #067AFF;
-  color: white;
-  border-radius: 10px;
-  font: 500 20px "IBM Plex Mono", monospace;
-  cursor: pointer;
-}
-
-.answer-title {
-  position: absolute;
-  left: 26px;
-  top: 221px;
-  font: 500 24px "IBM Plex Mono", monospace;
-}
-
-.answer-number {
-  width: 75px;
-  height: 83px;
-  left: 48px;
-  top: 302px;
-  position: absolute;
-  background: white;
-  border: 1px solid #D9D9D9;
-  border-radius: 37.5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 500 36px "IBM Plex Mono", monospace;
-}
-
-.answer-input {
-  width: 649px;
-  height: 62px;
-  left: 136px;
-  top: 312px;
-  position: absolute;
-  background: rgba(217, 217, 217, .6);
-  border: 1px solid rgba(217, 217, 217, .75);
-  border-radius: 15px;
-  padding: 16px;
-  font-size: 20px;
-}
-
-.add-option {
-  width: 250px;
-  height: 28px;
-  left: 544px;
-  top: 393px;
-  position: absolute;
-  background: white;
-  border: 1px solid #067AFF;
-  border-radius: 10px;
-  color: #067AFF;
-  font: 500 20px "IBM Plex Mono", monospace;
-  cursor: pointer;
-}
-
-.add-answer {
-  width: 224px;
-  height: 51px;
-  left: 581px;
-  top: 453px;
-  position: absolute;
-  background: #067AFF;
-  color: white;
-  border: 0;
-  border-radius: 10px;
-  font: 500 20px "IBM Plex Mono", monospace;
-  cursor: pointer;
-}
-
-.search-icon {
-  width: 24px;
-  height: 24px;
-  left: 260px;
-  top: 48px;
-  position: absolute;
-  border: 4px solid #067AFF;
-  border-radius: 50%;
-}
-
-.search-icon:after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 4px;
-  background: #067AFF;
-  right: -7px;
-  bottom: -4px;
-  transform: rotate(45deg);
-}
-
-.logout {
-  padding: 10px;
-  left: 1252px;
-  top: 37px;
-  position: absolute;
-  background: #00FF1E;
-  border-radius: 25px;
-  color: white;
-  font: 700 20px Inter, Arial, sans-serif;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-@media (max-width: 1440px) {
-  body {
-    overflow-x: auto;
-  }
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Créateur de Quiz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f1f2f3;
+      color: #222;
+      font-family: Arial, sans-serif;
+    }
+    main {
+      max-width: 1100px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 2fr 0.85fr;
+      gap: 28px;
+    }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 21px; margin: 0 0 14px; }
+    h3 { font-size: 20px; margin: 0 0 14px; }
+    input, select, button {
+      font: inherit;
+      border: 1px solid #aaa;
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    input[type="text"], select { width: 100%; background: white; }
+    .panel, .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 7px #00000012;
+    }
+    .quiz-title { margin-bottom: 16px; }
+    .question { margin-top: 16px; }
+    .type-row { margin: 14px 0; }
+    .type-row label { display: block; margin-bottom: 6px; font-weight: bold; }
+    .option { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+    .option input[type="radio"] { width: 20px; height: 20px; }
+    .option input[type="text"] { flex: 1; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+    button { cursor: pointer; background: #f4f4f4; font-weight: bold; }
+    aside h2 { text-align: center; margin-bottom: 14px; }
+    .card { margin-bottom: 14px; }
+    .card p { margin: 8px 0; }
+    .publish {
+      width: 100%; margin-top: 12px; padding: 14px;
+      color: white; background: #292929; border-color: #292929;
+      font-size: 19px;
+    }
+    @media (max-width: 760px) {
+      body { padding: 16px; }
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
+  <main>
+    <section>
+      <h1>Créateur de Quiz</h1>
+      <input class="quiz-title" type="text" placeholder="Titre du quiz" aria-label="Titre du quiz">
 
-<div class="page">
+      <div class="panel">
+        <h2>Ajouter une question</h2>
+        <input type="text" placeholder="Énoncé de la question" aria-label="Énoncé de la question">
 
-  <div class="sidebar"></div>
-  <div class="topbar"></div>
-  <div class="panel"></div>
+        <div class="type-row">
+          <label for="type">Type de question</label>
+          <select id="type">
+            <option>Choix multiples</option>
+            <option>Vrai/Faux</option>
+          </select>
+        </div>
 
-  <div class="heading">
-    <strong>CREATE NEW QUESTION</strong>
-    <span>crée tes questions</span>
-  </div>
+        <div class="option"><input type="radio" name="correct" checked aria-label="Bonne réponse A"><input type="text" value="Option A" aria-label="Option A"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse B"><input type="text" value="Option B" aria-label="Option B"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse C"><input type="text" value="Option C" aria-label="Option C"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse D"><input type="text" value="Option D" aria-label="Option D"></div>
 
-  <div class="section-title">INFORMATION DU QUIZ</div>
+        <div class="actions">
+          <button type="button">Enlever une option</button><br>
+          <button tyoe="button">Ajouter une option</button><br>
+          <button type="button">Enregistrer la question</button></div>
+      </div>
+    </section>
 
-  <div class="label title-label">Titre de Quiz</div>
-  <div class="label description-label">Description</div>
-
-  <input
-    class="field title-field"
-    type="text"
-    placeholder="entrer titre du quiz..."
-    aria-label="Titre du quiz"
-  >
-
-  <input
-    class="field description-field"
-    type="text"
-    placeholder="entrer description du quiz..."
-    aria-label="Description du quiz"
-  >
-
-  <div class="logo-grid">
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
-
-  <div class="dashboard-label">DASHBOARD</div>
-
-  <div class="quiz-panel"></div>
-
-  <div class="quiz-inner">
-
-    <div class="quiz-title">QUESTION DU QUIZ</div>
-
-    <input
-      class="question-input"
-      type="text"
-      placeholder="entrer votre question..."
-      aria-label="Question du quiz"
-    >
-
-    <button class="add-question" type="button">
-      + ajouter question
-    </button>
-
-    <div class="answer-title">RÉPONSE DU QUIZ</div>
-
-    <div class="answer-number">01</div>
-
-    <input
-      class="answer-input"
-      type="text"
-      placeholder="entrer votre réponse..."
-      aria-label="Réponse du quiz"
-    >
-
-    <button class="add-option" type="button">
-      + option de réponse
-    </button>
-
-    <button class="add-answer" type="button">
-      + ajouter réponse
-    </button>
-
-  </div>
-
-  <div class="search-icon" aria-hidden="true"></div>
-
-  <a
-  class="logout"
-  href="Accueil.html"
-  onclick="deconnecter(event)"
->
-  Déconnexion
-</a>
-
-<script>
-const token = localStorage.getItem("token");
-
-if (!token) {
-  window.location.href = "Accueil.html";
-} else {
-  fetch("/api/verifier-token", {
-    headers: {
-      "Authorization": "Bearer " + token
-    }
-  })
-  .then(reponse => reponse.json())
-  .then(data => {
-    if (!data.ok) {
-      localStorage.removeItem("token");
-      window.location.href = "Accueil.html";
-    }
-  })
-  .catch(() => {
-    localStorage.removeItem("token");
-    window.location.href = "Accueil.html";
-  });
-}
-
-function deconnecter(event) {
-  event.preventDefault();
-
-  localStorage.removeItem("token");
-
-  window.location.href = "Accueil.html";
-}
-</script>
-
+    <aside>
+      <h2>Aperçu du Quiz</h2>
+      <button class="publish" type="button">Publier le Quiz</button>
+    </aside>
+  </main>
 </body>
 </html>
