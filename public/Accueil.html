@@ -9,7 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-
+            
             height: 100vh;
             margin: 0;
             font-family: Arial;
@@ -22,15 +22,16 @@
 <body>
 
     <div class="container">
-        <button id="btnEleve" style="background-color: gray;">Élève</button><button id="btnEnseigant" style="background-color: white;">Enseigant</button>
-        <h2 id="typeDeConnexion">Connexion à un élève</h2>
+        <button id=btnEleve style="background-color: gray;">Élève</button><button id="btnEnseigant" style="background-color: white;">Enseigant</button>
+        <h2 id="typeDeConnexion" >Connexion à un élève</h2>
 
         <label>Usager :</label><br>
         <input type="text" id="usager" name="usager" required><br><br>
-
         <label>Mot de passe :</label><br>
-        <input type="password" id="password" name="password" required>
-        <span id="toggleMdp" style="cursor:pointer; margin-left:10px; font-size:20px;">👁️</span><br><br>
+        <span style="position: relative; display: inline-block;">
+            <input type="password" id="password" name="password" required>
+            <span id="toggleMdp" style="position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px;">👁️</span>
+        </span><br><br>
         <button type="submit" id="submit" name="submit">Se connecter</button><br><br>
 
         <label style="color:red;" id="erreur"> </label>
@@ -41,64 +42,53 @@
         const mdp = document.getElementById("password");
         const btnSeConnecter = document.getElementById("submit");
         const erreur = document.getElementById("erreur");
-        const toggleMdp = document.getElementById("toggleMdp");
-        const btnEleve = document.getElementById("btnEleve");
-        const btnEnseignant = document.getElementById("btnEnseigant");
-        const typeDeConnexion = document.getElementById("typeDeConnexion");
+        const toggleMdp=document.getElementById("toggleMdp");
+        const btnEleve=document.getElementById("btnEleve");
+        const btnEnseignant=document.getElementById("btnEnseigant");
+        const typeDeConnexion=document.getElementById("typeDeConnexion");
+        let eleve=true;
 
-        // Changer le type de connexion (Élève/Enseignant)
-        btnEleve.addEventListener("click", e => {
-            typeDeConnexion.textContent = "Connexion à un élève";
-            btnEleve.style.backgroundColor = "gray";
-            btnEnseignant.style.backgroundColor = "white";
-        });
-        btnEnseignant.addEventListener("click", e => {
-            typeDeConnexion.textContent = "Connexion à un enseignant";
-            btnEnseignant.style.backgroundColor = "gray";
-            btnEleve.style.backgroundColor = "white";
-        });
 
-        // Afficher/Cacher le mot de passe
-        toggleMdp.addEventListener("click", e => {
-            if (mdp.type == "password") {
-                mdp.type = "text";
-            } else {
-                mdp.type = "password";
+        //Changer le type de connexion (Élève/Enseigant)
+        btnEleve.addEventListener("click",e=>{
+        typeDeConnexion.textContent="Connexion à un élève"
+        btnEleve.style.backgroundColor="gray";
+        btnEnseignant.style.backgroundColor="white";
+        eleve=true;
+        })
+        btnEnseignant.addEventListener("click",e=>{
+        typeDeConnexion.textContent="Connexion à un enseignant"
+        btnEnseignant.style.backgroundColor="gray"
+        btnEleve.style.backgroundColor="white";
+        eleve=false;
+        })
+        //Afficher/Cacher le mot de passe
+        toggleMdp.addEventListener("click",  e=>{
+            if(mdp.type=="password"){
+                mdp.type="text"
             }
-        });
-
+            else{
+                mdp.type="password"
+            }
+        })
         // Vérifier l'usager et le mot de passe auprès du serveur (base SQLite)
         btnSeConnecter.addEventListener("click", async () => {
-
-            // 1. Vérifier d'abord la connexion internet
-            if (!navigator.onLine) {
-                erreur.textContent = "Aucune connexion internet. Veuillez vous reconnecter et réessayer.";
-                return;
-            }
-
-            try {
                 const reponse = await fetch("/api/connexion", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ usager: usager.value, password: mdp.value })
                 });
-
                 const data = await reponse.json();
-
-                if (data.ok) {
+                if (data.ok&&!eleve) {
                     erreur.textContent = "";
                     localStorage.setItem("token", data.token);
                     window.location.href = "/dashboard.html";
-                } else {
-                    erreur.textContent = data.message;
                 }
-
-            } catch (err) {
-                // 2. Le serveur est injoignable ou internet est coupé
-                erreur.textContent = "Impossible de joindre le serveur. Vérifiez votre connexion internet.";
-            }
+                if(!data.ok||eleve) {
+                    erreur.textContent = "L'usager ou le mot de passe est incorrect";
+                }
+            
         });
-
         // 3. Réagir en direct quand la connexion change
         window.addEventListener("offline", () => {
             erreur.textContent = "Connexion internet perdue.";
@@ -133,5 +123,6 @@
             btnSeConnecter.disabled = true;
         }
     </script>
+
 </body>
 </html>

@@ -64,11 +64,12 @@
   <main>
     <section>
       <h1>Créateur de Quiz</h1>
-      <input class="quiz-title" type="text" placeholder="Titre du quiz" aria-label="Titre du quiz">
+      <button type="button" id="btnDecon">Deconnexion</button>
+      <input id="titre" class="quiz-title" type="text" placeholder="Titre du quiz" aria-label="Titre du quiz">
 
       <div class="panel">
         <h2>Ajouter une question</h2>
-        <input type="text" placeholder="Énoncé de la question" aria-label="Énoncé de la question">
+        <input id="enonce" type="text" placeholder="Énoncé de la question" aria-label="Énoncé de la question">
 
         <div class="type-row">
           <label for="type">Type de question</label>
@@ -78,22 +79,160 @@
           </select>
         </div>
 
-        <div class="option"><input type="radio" name="correct" checked aria-label="Bonne réponse A"><input type="text" value="Option A" aria-label="Option A"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse A"><input type="text" value="Option A" aria-label="Option A"></div>
         <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse B"><input type="text" value="Option B" aria-label="Option B"></div>
         <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse C"><input type="text" value="Option C" aria-label="Option C"></div>
         <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse D"><input type="text" value="Option D" aria-label="Option D"></div>
 
+        <div class="vraiFaux" style="display: none">
+          <div class="option"><input type="radio" name="correct" aria-label="Vrai"><input type="text" value="Vrai" aria-label="Vrai" readonly></div>
+          <div class="option"><input type="radio" name="correct" aria-label="Faux"><input type="text" value="Faux" aria-label="Faux" readonly></div>
+        </div>
+
+        <p id="erreur" style="color: red;"></p>
+
         <div class="actions">
-          <button type="button">Enlever une option</button><br>
-          <button tyoe="button">Ajouter une option</button><br>
-          <button type="button">Enregistrer la question</button></div>
+          <button type="button" id="Enlever">Enlever une option</button>
+          <button type="button" id="Ajouter">Ajouter une option</button>
+          <button type="button" id="Enregister">Enregistrer la question</button>
+        </div>
       </div>
     </section>
 
     <aside>
       <h2>Aperçu du Quiz</h2>
-      <button class="publish" type="button">Publier le Quiz</button>
+      <div id="questionsEnregistrees"></div>
+      <button id="publier" class="publish" type="button">Publier le Quiz</button>
     </aside>
   </main>
+
+  <script>
+    const btnEnlever = document.getElementById("Enlever");
+    const btnAjouter = document.getElementById("Ajouter");
+    const btnEnregistrer = document.getElementById("Enregister");
+    const btnDecon = document.getElementById("btnDecon");
+    const typeQuestion = document.getElementById("type");
+    const vraiFaux = document.querySelector(".vraiFaux");
+    const enonce = document.getElementById("enonce");
+    const erreur = document.getElementById("erreur");
+    const questionsEnregistrees = document.getElementById("questionsEnregistrees");
+    const btnPublier=document.getElementById("publier");
+    const lblTitre=document.getElementById("titre");
+
+    let options = document.querySelectorAll("section > .panel > .option");
+    let compteurOption = options.length;
+    let quizValide=false;
+
+    btnEnlever.addEventListener("click", () => {
+      if (compteurOption > 2) {
+        options[options.length - 1].remove();
+        compteurOption--;
+        options = document.querySelectorAll("section > .panel > .option");
+      }
+    });
+
+    btnDecon.addEventListener("click", () => {
+      window.location.href = "/Accueil.html";
+    });
+
+    btnAjouter.addEventListener("click", () => {
+      if (compteurOption < 5) {
+        compteurOption++;
+
+        const option = document.createElement("div");
+        option.className = "option";
+
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "correct";
+        radio.setAttribute("aria-label", `Bonne réponse ${compteurOption}`);
+
+        const texte = document.createElement("input");
+        texte.type = "text";
+        texte.value = `Option ${compteurOption}`;
+        texte.setAttribute("aria-label", `Option ${compteurOption}`);
+
+        option.append(radio, texte);
+        vraiFaux.before(option);
+
+        options = document.querySelectorAll("section > .panel > .option");
+      }
+    });
+
+    typeQuestion.addEventListener("change", () => {
+      const afficherVraiFaux = typeQuestion.value === "Vrai/Faux";
+
+      vraiFaux.style.display = afficherVraiFaux ? "block" : "none";
+      options.forEach(option => {
+        option.style.display = afficherVraiFaux ? "none" : "flex";
+      });
+
+      btnAjouter.style.display = afficherVraiFaux ? "none" : "";
+      btnEnlever.style.display = afficherVraiFaux ? "none" : "";
+      erreur.textContent = "";
+    });
+
+    btnEnregistrer.addEventListener("click", () => {
+      quizValide=true;
+      const afficherVraiFaux = typeQuestion.value === "Vrai/Faux";
+      const optionsActives = afficherVraiFaux
+        ? vraiFaux.querySelectorAll(".option")
+        : document.querySelectorAll("section > .panel > .option");
+
+      const bonneReponse = Array.from(optionsActives)
+        .find(option => option.querySelector('input[type="radio"]').checked);
+
+      if (!enonce.value.trim()) {
+        erreur.textContent = "Écris l’énoncé de la question.";
+        quizValide=false;
+        return;
+      }
+      else{
+        quizValide=true;
+      }
+
+      if (!bonneReponse) {
+        erreur.textContent = "Sélectionne la bonne réponse avant d’enregistrer.";
+        return;
+        quizValide=false;
+      }
+      else{
+        quizValide=true;
+      }
+
+      const carte = document.createElement("div");
+      carte.className = "card";
+
+      const texteQuestion = document.createElement("h3");
+      texteQuestion.textContent = enonce.value.trim();
+      carte.appendChild(texteQuestion);
+
+      optionsActives.forEach(option => {
+        const texteOption = option.querySelector('input[type="text"]').value;
+        const ligne = document.createElement("p");
+        ligne.textContent = option === bonneReponse
+          ? `✓ ${texteOption} (bonne réponse)`
+          : texteOption;
+        carte.appendChild(ligne);
+      });
+
+      questionsEnregistrees.appendChild(carte);
+      enonce.value = "";
+      erreur.textContent = "";
+
+      optionsActives.forEach(option => {
+        option.querySelector('input[type="radio"]').checked = false;
+      });
+    });
+    btnPublier.addEventListener("click",()=>{
+      if(lblTitre.value==""){
+        erreur.textContent="Vous devez donner un nom a votre quiz";
+      }
+      else if(!quizValide){
+        erreur.textContent="Vous devez ajouter une question"
+
+      }
+    })
+  </script>
 </body>
 </html>
