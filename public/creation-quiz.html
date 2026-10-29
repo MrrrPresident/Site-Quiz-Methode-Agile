@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Créateur de Quiz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f1f2f3;
+      color: #222;
+      font-family: Arial, sans-serif;
+    }
+    main {
+      max-width: 1100px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 2fr 0.85fr;
+      gap: 28px;
+    }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 21px; margin: 0 0 14px; }
+    h3 { font-size: 20px; margin: 0 0 14px; }
+    input, select, button, textarea {
+      font: inherit;
+      border: 1px solid #aaa;
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    input[type="text"], select, textarea {
+    width: 100%;
+    background: white;
+}
+
+textarea {
+    display: block;
+    margin-bottom: 16px;
+    resize: vertical;
+}
+    .panel, .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 7px #00000012;
+    }
+    .quiz-title { margin-bottom: 16px; }
+    .question { margin-top: 16px; }
+    .type-row { margin: 14px 0; }
+    .type-row label { display: block; margin-bottom: 6px; font-weight: bold; }
+    .option { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+    .option input[type="radio"] { width: 20px; height: 20px; }
+    .option input[type="text"] { flex: 1; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+    button { cursor: pointer; background: #f4f4f4; font-weight: bold; }
+    aside h2 { text-align: center; margin-bottom: 14px; }
+    .card { margin-bottom: 14px; }
+    .card p { margin: 8px 0; }
+    .publish {
+      width: 100%; margin-top: 12px; padding: 14px;
+      color: white; background: #292929; border-color: #292929;
+      font-size: 19px;
+    }
+    @media (max-width: 760px) {
+      body { padding: 16px; }
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Créateur de Quiz</h1>
+      <button type="button" id="btnDecon">Deconnexion</button>
+      <input id="titre" class="quiz-title" type="text" placeholder="Titre du quiz" aria-label="Titre du quiz">
+
+      <textarea id="descriptionQuiz" placeholder="Description du quiz (facultative)" rows="3"></textarea>
+      
+      <div class="panel">
+        <h2>Ajouter une question</h2>
+        <input id="enonce" type="text" placeholder="Énoncé de la question" aria-label="Énoncé de la question">
+
+        <div class="type-row">
+          <label for="type">Type de question</label>
+          <select id="type">
+            <option>Choix multiples</option>
+            <option>Vrai/Faux</option>
+          </select>
+        </div>
+
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse A"><input type="text" value="Option A" aria-label="Option A"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse B"><input type="text" value="Option B" aria-label="Option B"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse C"><input type="text" value="Option C" aria-label="Option C"></div>
+        <div class="option"><input type="radio" name="correct" aria-label="Bonne réponse D"><input type="text" value="Option D" aria-label="Option D"></div>
+
+        <div class="vraiFaux" style="display: none">
+          <div class="option"><input type="radio" name="correct" aria-label="Vrai"><input type="text" value="Vrai" aria-label="Vrai" readonly></div>
+          <div class="option"><input type="radio" name="correct" aria-label="Faux"><input type="text" value="Faux" aria-label="Faux" readonly></div>
+        </div>
+
+        <p id="erreur" style="color: red;"></p>
+
+        <div class="actions">
+          <button type="button" id="Enlever">Enlever une option</button>
+          <button type="button" id="Ajouter">Ajouter une option</button>
+          <button type="button" id="Enregister">Enregistrer la question</button>
+        </div>
+      </div>
+    </section>
+
+    <aside>
+      <h2>Aperçu du Quiz</h2>
+      <div id="questionsEnregistrees"></div>
+      <button id="publier" class="publish" type="button">Publier le Quiz</button>
+    </aside>
+  </main>
+
+  <script>
+    const btnEnlever = document.getElementById("Enlever");
+    const btnAjouter = document.getElementById("Ajouter");
+    const btnEnregistrer = document.getElementById("Enregister");
+    const btnDecon = document.getElementById("btnDecon");
+    const typeQuestion = document.getElementById("type");
+    const vraiFaux = document.querySelector(".vraiFaux");
+    const enonce = document.getElementById("enonce");
+    const erreur = document.getElementById("erreur");
+    const questionsEnregistrees = document.getElementById("questionsEnregistrees");
+    const btnPublier=document.getElementById("publier");
+    const lblTitre=document.getElementById("titre");
+
+    let options = document.querySelectorAll("section > .panel > .option");
+    let compteurOption = options.length;
+    let quizValide=false;
+
+    btnEnlever.addEventListener("click", () => {
+      if (compteurOption > 2) {
+        options[options.length - 1].remove();
+        compteurOption--;
+        options = document.querySelectorAll("section > .panel > .option");
+      }
+    });
+
+    btnDecon.addEventListener("click", () => {
+      window.location.href = "/Accueil.html";
+    });
+
+    btnAjouter.addEventListener("click", () => {
+      if (compteurOption < 5) {
+        compteurOption++;
+
+        const option = document.createElement("div");
+        option.className = "option";
+
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "correct";
+        radio.setAttribute("aria-label", `Bonne réponse ${compteurOption}`);
+
+        const texte = document.createElement("input");
+        texte.type = "text";
+        texte.value = `Option ${compteurOption}`;
+        texte.setAttribute("aria-label", `Option ${compteurOption}`);
+
+        option.append(radio, texte);
+        vraiFaux.before(option);
+
+        options = document.querySelectorAll("section > .panel > .option");
+      }
+    });
+
+    typeQuestion.addEventListener("change", () => {
+      const afficherVraiFaux = typeQuestion.value === "Vrai/Faux";
+
+      vraiFaux.style.display = afficherVraiFaux ? "block" : "none";
+      options.forEach(option => {
+        option.style.display = afficherVraiFaux ? "none" : "flex";
+      });
+
+      btnAjouter.style.display = afficherVraiFaux ? "none" : "";
+      btnEnlever.style.display = afficherVraiFaux ? "none" : "";
+      erreur.textContent = "";
+    });
+
+    const questionsDuQuiz = [];
+
+    btnEnregistrer.addEventListener("click", () => {
+      quizValide=true;
+      const afficherVraiFaux = typeQuestion.value === "Vrai/Faux";
+      const optionsActives = afficherVraiFaux
+        ? vraiFaux.querySelectorAll(".option")
+        : document.querySelectorAll("section > .panel > .option");
+
+      const bonneReponse = Array.from(optionsActives)
+        .find(option => option.querySelector('input[type="radio"]').checked);
+
+      if (!enonce.value.trim()) {
+        erreur.textContent = "Écris l’énoncé de la question.";
+        quizValide=false;
+        return;
+      }
+      else{
+        quizValide=true;
+      }
+
+      if (!bonneReponse) {
+        erreur.textContent = "Sélectionne la bonne réponse avant d’enregistrer.";
+        return;
+        quizValide=false;
+      }
+      else{
+        quizValide=true;
+      }
+
+      const carte = document.createElement("div");
+      carte.className = "card";
+
+      const texteQuestion = document.createElement("h3");
+      texteQuestion.textContent = enonce.value.trim();
+      carte.appendChild(texteQuestion);
+
+      optionsActives.forEach(option => {
+        const texteOption = option.querySelector('input[type="text"]').value;
+        const ligne = document.createElement("p");
+        ligne.textContent = option === bonneReponse
+          ? `✓ ${texteOption} (bonne réponse)`
+          : texteOption;
+        carte.appendChild(ligne);
+      });
+
+      const nouvelleQuestion = {
+    enonce: enonce.value.trim(),
+    type: afficherVraiFaux ? "vrai_faux" : "choix_multiples",
+    reponses: Array.from(optionsActives).map(option => ({
+        texte: option.querySelector('input[type="text"]').value.trim(),
+        est_correcte: option === bonneReponse
+    }))
+};
+
+questionsDuQuiz.push(nouvelleQuestion);
+
+console.log(questionsDuQuiz);
+
+      questionsEnregistrees.appendChild(carte);
+      enonce.value = "";
+      erreur.textContent = "";
+
+      optionsActives.forEach(option => {
+        option.querySelector('input[type="radio"]').checked = false;
+      });
+    });
+    btnPublier.addEventListener("click", async () => {
+
+    if (!lblTitre.value.trim()) {
+        erreur.textContent = "Vous devez donner un nom à votre quiz";
+        return;
+    }
+
+    if (questionsDuQuiz.length === 0) {
+        erreur.textContent = "Vous devez ajouter une question";
+        return;
+    }
+
+    const quizComplet = {
+    titre: lblTitre.value.trim(),
+    description: document.getElementById("descriptionQuiz").value.trim(),
+    questions: questionsDuQuiz
+};
+
+    console.log("Quiz prêt à être envoyé :", quizComplet);
+
+    try {
+    const reponse = await fetch("/api/quiz/complet", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        body: JSON.stringify(quizComplet)
+    });
+
+    const resultat = await reponse.json();
+
+    if (!reponse.ok) {
+        erreur.textContent = resultat.message;
+        return;
+    }
+
+    erreur.textContent = "";
+    alert("Quiz enregistré avec succès ! ID : " + resultat.quiz_id);
+    window.location.href = "/dashboard.html";
+
+} catch (e) {
+    erreur.textContent = "Impossible de communiquer avec le serveur";
+    console.error(e);
+}
+
+});
+  </script>
+</body>
+</html>
