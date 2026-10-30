@@ -74,9 +74,13 @@
         // Vérifier l'usager et le mot de passe auprès du serveur (base SQLite)
         btnSeConnecter.addEventListener("click", async () => {
                 const reponse = await fetch("/api/connexion", {
-                    method: "POST",
+                   method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ usager: usager.value, password: mdp.value })
+                    body: JSON.stringify({
+                    usager: usager.value,
+                    password: mdp.value,
+                    role: btnEnseignant.style.backgroundColor === "gray" ? "enseignant" : "eleve"
+            })
                 });
                 const data = await reponse.json();
                 if (data.ok&&!eleve) {
