@@ -39,10 +39,27 @@
     .card p { margin: 8px 0; }
 
     .actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 16px;
-    }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.deconnexion {
+  padding: 10px 12px;
+  background: #f4f4f4;
+  color: #222;
+  border: 1px solid #aaa;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.deconnexion:hover {
+  background: #e5e5e5;
+}
 
     .publish {
       display: inline-block;
@@ -78,7 +95,7 @@
 .btn-supprimer:hover {
   background: #f4f4f4;
 }
-}
+
 
     @media (max-width: 760px) {
       body { padding: 16px; }
@@ -92,8 +109,12 @@
     <h1>Tableau de bord de l'enseignant</h1>
 
     <div class="actions">
-      <a href="creation-quiz.html" class="publish">Créer un quiz</a>
-    </div>
+ <button type="button" class="deconnexion"
+        onclick="localStorage.removeItem('token'); window.location.replace('/Accueil.html');">
+    Déconnexion
+</button>
+  <a href="creation-quiz.html" class="publish">Créer un quiz</a>
+</div>
 
     <section class="panel">
       <h2>Mes quiz</h2>
