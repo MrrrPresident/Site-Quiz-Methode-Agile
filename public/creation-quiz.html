@@ -77,7 +77,7 @@ textarea {
       <input id="titre" class="quiz-title" type="text" placeholder="Titre du quiz" aria-label="Titre du quiz">
 
       <textarea id="descriptionQuiz" placeholder="Description du quiz (facultative)" rows="3"></textarea>
-      
+     
       <div class="panel">
         <h2>Ajouter une question</h2>
         <input id="enonce" type="text" placeholder="Énoncé de la question" aria-label="Énoncé de la question">
@@ -196,7 +196,7 @@ textarea {
         .find(option => option.querySelector('input[type="radio"]').checked);
 
       if (!enonce.value.trim()) {
-        erreur.textContent = "Écris l’énoncé de la question.";
+        erreur.textContent = "Écris l'énoncé de la question.";
         quizValide=false;
         return;
       }
@@ -205,7 +205,7 @@ textarea {
       }
 
       if (!bonneReponse) {
-        erreur.textContent = "Sélectionne la bonne réponse avant d’enregistrer.";
+        erreur.textContent = "Sélectionne la bonne réponse avant d'enregistrer.";
         return;
         quizValide=false;
       }
@@ -250,7 +250,7 @@ console.log(questionsDuQuiz);
         option.querySelector('input[type="radio"]').checked = false;
       });
     });
-    btnPublier.addEventListener("click", async () => {
+ btnPublier.addEventListener("click", async () => {
 
     if (!lblTitre.value.trim()) {
         erreur.textContent = "Vous devez donner un nom à votre quiz";
@@ -262,39 +262,97 @@ console.log(questionsDuQuiz);
         return;
     }
 
-    const quizComplet = {
-    titre: lblTitre.value.trim(),
-    description: document.getElementById("descriptionQuiz").value.trim(),
-    questions: questionsDuQuiz
-};
+    const token = localStorage.getItem("token");
 
-    console.log("Quiz prêt à être envoyé :", quizComplet);
-
-    try {
-    const reponse = await fetch("/api/quiz/complet", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + localStorage.getItem("token")
-        },
-        body: JSON.stringify(quizComplet)
-    });
-
-    const resultat = await reponse.json();
-
-    if (!reponse.ok) {
-        erreur.textContent = resultat.message;
+    if (!token) {
+        erreur.textContent = "Vous devez vous connecter.";
         return;
     }
 
-    erreur.textContent = "";
-    alert("Quiz enregistré avec succès ! ID : " + resultat.quiz_id);
-    window.location.href = "/dashboard.html";
+    const quizComplet = {
+        titre: lblTitre.value.trim(),
 
-} catch (e) {
-    erreur.textContent = "Impossible de communiquer avec le serveur";
-    console.error(e);
-}
+        questions: questionsDuQuiz.map(q => ({
+            enonce: q.enonce,
+            type: q.type,
+            options: q.reponses.map(r => ({
+                texte: r.texte,
+                correcte: r.est_correcte
+            }))
+        }))
+    };
+
+    try {
+
+        // ÉTAPE 1 : Créer le quiz
+        const reponseCreation = await fetch("/api/quiz", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(quizComplet)
+        });
+
+        const texteCreation = await reponseCreation.text();
+
+        let resultatCreation;
+
+        try {
+            resultatCreation = JSON.parse(texteCreation);
+        } catch {
+            throw new Error("Réponse invalide du serveur lors de la création : " + texteCreation);
+        }
+
+        if (!reponseCreation.ok) {
+            throw new Error(resultatCreation.message || "Erreur lors de la création du quiz");
+        }
+
+        // Vérifier que le serveur a retourné un ID
+        const quizId = resultatCreation.quiz?.id;
+
+        if (!quizId) {
+            throw new Error("Le serveur n'a pas retourné l'identifiant du quiz.");
+        }
+
+        console.log("Quiz créé avec ID :", quizId);
+
+        // ÉTAPE 2 : Publier le quiz
+        const reponsePublication = await fetch(
+            `/api/quiz/${quizId}/publier`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        const textePublication = await reponsePublication.text();
+
+        let resultatPublication;
+
+        try {
+            resultatPublication = JSON.parse(textePublication);
+        } catch {
+            throw new Error("Réponse invalide du serveur lors de la publication : " + textePublication);
+        }
+
+        if (!reponsePublication.ok) {
+            throw new Error(resultatPublication.message || "Erreur lors de la publication");
+        }
+
+        alert("Quiz publié avec succès ! ID : " + quizId);
+
+        window.location.href = "/dashboard.html";
+
+    } catch (e) {
+
+        console.error("ERREUR PUBLICATION :", e);
+
+        erreur.textContent = e.message;
+
+    }
 
 });
   </script>
