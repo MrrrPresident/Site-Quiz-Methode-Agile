@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; background: #f1f2f3; color: #222; font-family: Arial, sans-serif; }
+    main { max-width: 800px; margin: auto; }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    .panel, .card { background: white; border: 1px solid #ddd; border-radius: 14px; padding: 20px; box-shadow: 0 2px 7px #00000012; margin-top: 16px; }
+    .card { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .entete { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    /* Question : le titre (legend) devient un bandeau en haut du cadre */
+    fieldset.panel { margin: 16px 0 0; padding: 0 20px 14px; min-width: 0; overflow: hidden; }
+    fieldset.panel legend {
+      float: left; /* sort le legend de la bordure pour le placer dans le cadre */
+      width: calc(100% + 40px);
+      margin: 0 -20px 12px;
+      padding: 12px 20px;
+      background: #292929;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+    label.option { display: block; clear: both; padding: 8px; margin: 6px 0; border-radius: 9px; cursor: pointer; }
+    label.option:hover { background: #f4f4f4; }
+    .juste { background: #e3f6e3; }
+    .faux { background: #fbe3e3; }
+    a.bouton, button { display: inline-block; padding: 10px 14px; border: 1px solid #292929; border-radius: 9px;
+      font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; background: #f4f4f4; color: #222; }
+    .principal { background: #292929 !important; color: white !important; }
+    #erreur { color: red; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="entete">
+      <h1 id="titrePage">Quiz disponibles</h1>
+      <button type="button" onclick="localStorage.removeItem('token'); location.replace('/Accueil.html');">Déconnexion</button>
+    </div>
+    <p id="erreur" role="alert"></p>
+    <div id="contenu"></div>
+  </main>
+
+  <script src="validation-reponses.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const contenu = document.getElementById("contenu");
+    const erreur = document.getElementById("erreur");
+    const titrePage = document.getElementById("titrePage");
+    const idQuiz = new URLSearchParams(location.search).get("id");
+
+    async function api(url, options = {}) {
+      const reponse = await fetch(url, {
+        ...options,
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }
+      });
+      return { reponse, resultat: await reponse.json() };
+    }
+
+    function el(tag, texte, classe) {
+      const e = document.createElement(tag);
+      if (texte !== undefined) e.textContent = texte;
+      if (classe) e.className = classe;
+      return e;
+    }
+
+    // Liste des quiz publiés (le serveur ne renvoie jamais les quiz non publiés aux élèves)
+    async function afficherListe() {
+      const [{ resultat: liste }, { resultat: faits }] = await Promise.all([api("/api/quiz"), api("/api/mes-resultats")]);
+      const scores = new Map((faits.resultats || []).map(r => [r.quiz_id, r]));
+      if (liste.quiz.length === 0) { contenu.textContent = "Aucun quiz n'est publié pour le moment."; return; }
+
+      liste.quiz.forEach(q => {
+        const carte = el("div", undefined, "card");
+        const infos = el("div");
+        infos.append(el("h2", q.titre), el("p", `${q.nb_questions} question(s)`));
+        carte.appendChild(infos);
+
+        const fait = scores.get(q.id);
+        if (fait) {
+          carte.appendChild(el("p", `Terminé : ${fait.score} / ${fait.total}`));
+        } else {
+          const lien = el("a", "Commencer", "bouton principal");
+          lien.href = "/quiz.html?id=" + q.id;
+          carte.appendChild(lien);
+        }
+        contenu.appendChild(carte);
+      });
+    }
+
+    // Un quiz : questions sans les bonnes réponses, puis correction après l'envoi
+    async function afficherQuiz() {
+      const { reponse, resultat } = await api("/api/quiz/" + encodeURIComponent(idQuiz));
+      if (!reponse.ok) {
+        erreur.textContent = reponse.status === 403 ? "Ce quiz n'est pas disponible." : (resultat.message || "Quiz introuvable");
+        contenu.appendChild(lienRetour());
+        return;
+      }
+      const quiz = resultat.quiz;
+      titrePage.textContent = quiz.titre;
+
+      const form = el("form");
+      quiz.questions.forEach((q, i) => {
+        const bloc = el("fieldset", undefined, "panel");
+        bloc.appendChild(el("legend", `${i + 1}. ${q.enonce}`));
+        q.options.forEach(o => {
+          const label = el("label", undefined, "option");
+          label.dataset.option = o.id;
+          const radio = el("input");
+          radio.type = "radio";
+          radio.name = "q" + q.id;
+          radio.value = o.id;
+          label.append(radio, " " + o.texte);
+          bloc.appendChild(label);
+        });
+        form.appendChild(bloc);
+      });
+      const envoyer = el("button", "Envoyer mes réponses", "principal");
+      envoyer.type = "submit";
+      envoyer.style.marginTop = "16px";
+      form.appendChild(envoyer);
+      contenu.appendChild(form);
+
+      form.addEventListener("submit", async ev => {
+        ev.preventDefault();
+        const reponses = {};
+        quiz.questions.forEach(q => {
+          const choisie = form.querySelector(`input[name="q${q.id}"]:checked`);
+          if (choisie) reponses[q.id] = Number(choisie.value);
+        });
+        // Même validation que le serveur (validation-reponses.js)
+        const invalide = validerReponses(quiz.questions, reponses);
+        if (invalide) { erreur.textContent = invalide; return; }
+        erreur.textContent = "";
+
+        const { reponse, resultat } = await api(`/api/quiz/${quiz.id}/soumettre`, {
+          method: "POST",
+          body: JSON.stringify({ reponses })
+        });
+        if (!reponse.ok) { erreur.textContent = resultat.message; return; }
+
+        // Correction : vert = bonne réponse, rouge = mauvais choix
+        form.querySelectorAll("input").forEach(i => i.disabled = true);
+        envoyer.remove();
+        resultat.detail.forEach(d => {
+          form.querySelector(`label[data-option="${d.bonne_option}"]`)?.classList.add("juste");
+          if (!d.juste && d.option_choisie) form.querySelector(`label[data-option="${d.option_choisie}"]`)?.classList.add("faux");
+        });
+        const score = el("div", undefined, "panel");
+        score.append(el("h2", `Votre score : ${resultat.score} / ${resultat.total}`), lienRetour());
+        contenu.prepend(score);
+        window.scrollTo(0, 0);
+      });
+    }
+
+    function lienRetour() {
+      const a = el("a", "Retour aux quiz", "bouton");
+      a.href = "/quiz.html";
+      return a;
+    }
+
+    // Page réservée aux élèves connectés
+    (async () => {
+      if (!token) return location.replace("/Accueil.html?retour=" + encodeURIComponent(location.pathname + location.search));
+      try {
+        const { reponse, resultat } = await api("/api/verifier-token");
+        if (!reponse.ok || resultat.utilisateur.role !== "eleve") {
+          localStorage.removeItem("token");
+          return location.replace("/Accueil.html?retour=" + encodeURIComponent(location.pathname + location.search));
+        }
+        await (idQuiz ? afficherQuiz() : afficherListe());
+      } catch {
+        erreur.textContent = "Erreur de communication avec le serveur";
+      }
+    })();
+  </script>
+</body>
+</html>

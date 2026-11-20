@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion</title>
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        input {
+            width: 200px;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 8px 20px;
+            cursor: pointer;
+        }
+
+        #formModification {
+            display: none;
+            margin-top: 25px;
+            border: 1px solid gray;
+            padding: 20px;
+        }
+
+        #erreurModification {
+            color: red;
+        }
+
+        #messageModification {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <button id="btnEleve" style="background-color: gray;">
+            Élève
+        </button>
+
+        <button id="btnEnseignant" style="background-color: white;">
+            Enseignant
+        </button>
+
+        <h2 id="typeDeConnexion">Connexion à un élève</h2>
+
+        <label>Usager :</label><br>
+        <input type="text" id="usager" required><br><br>
+
+        <label>Mot de passe :</label><br>
+
+        <span style="position: relative; display: inline-block;">
+            <input type="password" id="password" required>
+
+            <span id="toggleMdp"
+                style="position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px;">
+                👁️
+            </span>
+        </span>
+
+        <br><br>
+
+        <button type="button" id="submit">
+            Se connecter
+        </button>
+
+        <br>
+
+        <button type="button" id="btnModifierMdp">
+            Modifier le mot de passe professeur
+        </button>
+
+        <br>
+
+        <label style="color:red;" id="erreur"></label>
+
+        <!-- FORMULAIRE DE MODIFICATION DU MOT DE PASSE -->
+
+        <div id="formModification">
+
+            <h3>Modifier le mot de passe professeur</h3>
+
+            <label>Nom d'utilisateur :</label><br>
+            <input type="text" id="nomProfesseur" value="Farid"><br><br>
+
+            <label>Ancien mot de passe :</label><br>
+            <input type="password" id="ancienMdp"><br><br>
+
+            <label>Nouveau mot de passe :</label><br>
+            <input type="password" id="nouveauMdp"><br><br>
+
+            <label>Confirmer le nouveau mot de passe :</label><br>
+            <input type="password" id="confirmationMdp"><br><br>
+
+            <button type="button" id="btnConfirmerModification">
+                Confirmer
+            </button>
+
+            <button type="button" id="btnAnnuler">
+                Annuler
+            </button>
+
+            <br><br>
+
+            <label id="erreurModification"></label>
+            <label id="messageModification"></label>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const usager = document.getElementById("usager");
+        const mdp = document.getElementById("password");
+        const btnSeConnecter = document.getElementById("submit");
+        const erreur = document.getElementById("erreur");
+
+        const toggleMdp = document.getElementById("toggleMdp");
+
+        const btnEleve = document.getElementById("btnEleve");
+        const btnEnseignant = document.getElementById("btnEnseignant");
+
+        const typeDeConnexion = document.getElementById("typeDeConnexion");
+
+        const btnModifierMdp = document.getElementById("btnModifierMdp");
+        const formModification = document.getElementById("formModification");
+
+        const btnConfirmerModification = document.getElementById("btnConfirmerModification");
+        const btnAnnuler = document.getElementById("btnAnnuler");
+
+        const nomProfesseur = document.getElementById("nomProfesseur");
+        const ancienMdp = document.getElementById("ancienMdp");
+        const nouveauMdp = document.getElementById("nouveauMdp");
+        const confirmationMdp = document.getElementById("confirmationMdp");
+
+        const erreurModification = document.getElementById("erreurModification");
+        const messageModification = document.getElementById("messageModification");
+
+        let eleve = true;
+
+        // CHANGER LE TYPE DE CONNEXION
+
+        btnEleve.addEventListener("click", () => {
+
+            typeDeConnexion.textContent = "Connexion à un élève";
+
+            btnEleve.style.backgroundColor = "gray";
+            btnEnseignant.style.backgroundColor = "white";
+
+            eleve = true;
+
+        });
+
+        btnEnseignant.addEventListener("click", () => {
+
+            typeDeConnexion.textContent = "Connexion à un enseignant";
+
+            btnEnseignant.style.backgroundColor = "gray";
+            btnEleve.style.backgroundColor = "white";
+
+            eleve = false;
+
+        });
+
+        // AFFICHER OU CACHER LE MOT DE PASSE
+
+        toggleMdp.addEventListener("click", () => {
+
+            if (mdp.type === "password") {
+                mdp.type = "text";
+            } else {
+                mdp.type = "password";
+            }
+
+        });
+
+        // CONNEXION
+
+        btnSeConnecter.addEventListener("click", async () => {
+
+            try {
+
+                const reponse = await fetch("/api/connexion", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        usager: usager.value,
+                        password: mdp.value,
+                        role: eleve ? "eleve" : "enseignant"
+
+                    })
+
+                });
+
+                const data = await reponse.json();
+
+                if (data.ok) {
+
+                    erreur.textContent = "";
+
+                    localStorage.setItem("token", data.token);
+
+                    window.location.href = "/dashboard.html";
+
+                } else {
+
+                    erreur.textContent = data.message || "L'usager ou le mot de passe est incorrect";
+
+                }
+
+            } catch (error) {
+
+                erreur.textContent = "Impossible de contacter le serveur.";
+
+            }
+
+        });
+
+        // AFFICHER LE FORMULAIRE DE MODIFICATION
+
+        btnModifierMdp.addEventListener("click", () => {
+
+            formModification.style.display = "block";
+
+            erreurModification.textContent = "";
+            messageModification.textContent = "";
+
+        });
+
+        // ANNULER LA MODIFICATION
+
+        btnAnnuler.addEventListener("click", () => {
+
+            formModification.style.display = "none";
+
+            ancienMdp.value = "";
+            nouveauMdp.value = "";
+            confirmationMdp.value = "";
+
+            erreurModification.textContent = "";
+            messageModification.textContent = "";
+
+        });
+
+        // MODIFIER LE MOT DE PASSE DU PROFESSEUR
+
+        btnConfirmerModification.addEventListener("click", async () => {
+
+            erreurModification.textContent = "";
+            messageModification.textContent = "";
+
+            if (!nomProfesseur.value || !ancienMdp.value ||
+                !nouveauMdp.value || !confirmationMdp.value) {
+
+                erreurModification.textContent = "Remplissez tous les champs.";
+                return;
+
+            }
+
+            if (nouveauMdp.value.length < 4) {
+
+                erreurModification.textContent = "Le nouveau mot de passe doit contenir au moins 4 caractères.";
+                return;
+
+            }
+
+            if (nouveauMdp.value !== confirmationMdp.value) {
+
+                erreurModification.textContent = "Les nouveaux mots de passe ne correspondent pas.";
+                return;
+
+            }
+
+            try {
+
+                const reponse = await fetch("/api/modifier-mot-de-passe-enseignant", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        usager: nomProfesseur.value,
+                        ancienMdp: ancienMdp.value,
+                        nouveauMdp: nouveauMdp.value
+
+                    })
+
+                });
+
+                const data = await reponse.json();
+
+                if (data.ok) {
+
+                    messageModification.textContent = "Mot de passe modifié avec succès !";
+
+                    ancienMdp.value = "";
+                    nouveauMdp.value = "";
+                    confirmationMdp.value = "";
+
+                } else {
+
+                    erreurModification.textContent = data.message;
+
+                }
+
+            } catch (error) {
+
+                erreurModification.textContent = "Impossible de contacter le serveur.";
+
+            }
+
+        });
+
+        // VÉRIFIER LA CONNEXION INTERNET
+
+        window.addEventListener("offline", () => {
+
+            erreur.textContent = "Connexion internet perdue.";
+            btnSeConnecter.disabled = true;
+
+        });
+
+        window.addEventListener("online", () => {
+
+            erreur.textContent = "";
+            btnSeConnecter.disabled = false;
+
+        });
+
+        if (!navigator.onLine) {
+
+            erreur.textContent = "Aucune connexion internet.";
+            btnSeConnecter.disabled = true;
+
+        }
+
+    </script>
+
+</body>
+</html>

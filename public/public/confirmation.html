@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz publié</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; background: #f1f2f3; color: #222; font-family: Arial, sans-serif; }
+    main { max-width: 640px; margin: auto; }
+    .panel { background: white; border: 1px solid #ddd; border-radius: 14px; padding: 24px; box-shadow: 0 2px 7px #00000012; }
+    h1 { font-size: 26px; margin: 0 0 16px; }
+    .lien { display: flex; gap: 8px; margin: 12px 0 20px; }
+    .lien input { flex: 1; padding: 10px 12px; border: 1px solid #aaa; border-radius: 9px; font: inherit; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    a.bouton, button { display: inline-block; padding: 12px 16px; border: 1px solid #292929; border-radius: 9px;
+      font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; background: #f4f4f4; color: #222; }
+    a.principal { background: #292929; color: white; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="panel" id="contenu">
+      <p>Chargement...</p>
+    </div>
+  </main>
+
+  <script>
+    const contenu = document.getElementById("contenu");
+    const id = new URLSearchParams(location.search).get("id");
+
+    async function afficher() {
+      const reponse = await fetch("/api/quiz/" + encodeURIComponent(id), {
+        headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+      });
+      const resultat = await reponse.json();
+      if (!reponse.ok) {
+        contenu.textContent = resultat.message || "Quiz introuvable";
+        return;
+      }
+      const quiz = resultat.quiz;
+      const lienEleves = location.origin + "/quiz.html?id=" + quiz.id;
+
+      contenu.innerHTML = `
+        <h1>✅ Quiz publié</h1>
+        <p><strong>Titre :</strong> <span id="titre"></span></p>
+        <p><strong>Questions :</strong> ${quiz.questions.length}</p>
+        <p><strong>Statut :</strong> ${quiz.publie ? "Publié, visible par les élèves" : "Brouillon"}</p>
+        <label for="lien">Lien à donner aux élèves :</label>
+        <div class="lien">
+          <input id="lien" type="text" readonly>
+          <button type="button" id="copier">Copier</button>
+        </div>
+        <div class="actions">
+          <a class="bouton principal" href="/dashboard.html">Retour au tableau de bord</a>
+          <a class="bouton" href="/creation-quiz.html">Créer un autre quiz</a>
+        </div>`;
+      document.getElementById("titre").textContent = quiz.titre; // textContent : le titre vient de l'utilisateur
+      document.getElementById("lien").value = lienEleves;
+      document.getElementById("copier").addEventListener("click", async (e) => {
+        await navigator.clipboard.writeText(lienEleves);
+        e.target.textContent = "Copié !";
+      });
+    }
+
+    afficher().catch(() => { contenu.textContent = "Erreur de communication avec le serveur"; });
+  </script>
+</body>
+</html>
