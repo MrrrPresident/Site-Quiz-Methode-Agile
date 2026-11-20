@@ -3,6 +3,7 @@ const { DatabaseSync } = require('node:sqlite');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const validerReponses = require('./public/validation-reponses');
 
 const app = express();
 const SECRET_KEY = process.env.SECRET_KEY || "cle-secrete-projet-quiz";
@@ -324,6 +325,8 @@ app.post('/api/quiz/:id/soumettre', authentifier, exigerRole('eleve'), (req, res
     const quiz = chargerQuiz(req.params.id, true);
     if (!quiz || !quiz.publie) return res.status(404).json({ ok: false, message: "Quiz introuvable" });
 
+    const erreur = validerReponses(quiz.questions, req.body?.reponses);
+    if (erreur) return res.status(400).json({ ok: false, message: erreur });
     const reponses = req.body.reponses || {};
     let score = 0;
     const detail = quiz.questions.map(q => {

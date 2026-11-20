@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Modifier une question</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; background: #f1f2f3; color: #222; font-family: Arial, sans-serif; }
+    main { max-width: 760px; margin: auto; }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 21px; margin: 0 0 14px; }
+    a { color: #222; }
+    .panel { background: white; border: 1px solid #ddd; border-radius: 14px; padding: 20px; margin-top: 20px; }
+    fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+    label, legend { display: block; font-weight: bold; margin: 12px 0 6px; }
+    input[type="text"], select, button { font: inherit; border: 1px solid #aaa; border-radius: 9px; padding: 10px 12px; }
+    input[type="text"], select { width: 100%; background: white; }
+    .option, .actions { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+    .option input[type="radio"] { width: 20px; height: 20px; }
+    .actions { flex-wrap: wrap; margin-top: 14px; }
+    button { cursor: pointer; background: #f4f4f4; }
+    button[type="submit"] { color: white; background: #292929; border-color: #292929; }
+    #message { margin-bottom: 0; }
+    @media (max-width: 760px) { body { padding: 16px; } }
+  </style>
+  <script src="edition-question.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Modifier une question</h1>
+    <a href="dashboard.html">Retour au tableau de bord</a>
+    <section class="panel">
+      <h2 id="titreQuiz">Questions du quiz</h2>
+      <form id="formQuestion" hidden>
+        <fieldset id="champs">
+          <label for="selection">Question à modifier</label>
+          <select id="selection"></select>
+          <button id="nouvelleQuestion" type="button">Ajouter une question</button>
+          <label for="enonce">Énoncé de la question</label>
+          <input id="enonce" type="text" required>
+          <label for="type">Type de question</label>
+          <select id="type">
+            <option value="choix_multiples">Choix multiples</option>
+            <option value="vrai_faux">Vrai/Faux</option>
+          </select>
+          <fieldset>
+            <legend>Réponses (coche la bonne réponse)</legend>
+            <div id="options"></div>
+            <div id="actionsOptions">
+              <button id="enlever" type="button">Enlever une option</button>
+              <button id="ajouter" type="button">Ajouter une option</button>
+            </div>
+          </fieldset>
+          <div class="actions">
+            <button type="submit">Enregistrer les modifications</button>
+            <button id="supprimer" type="button">Supprimer</button>
+          </div>
+        </fieldset>
+      </form>
+      <p id="message" role="status">Chargement des questions…</p>
+    </section>
+    <template id="modeleOption">
+      <div class="option">
+        <input type="radio" name="bonneReponse" required>
+        <input type="text" required>
+      </div>
+    </template>
+  </main>
+</body>
+</html>
